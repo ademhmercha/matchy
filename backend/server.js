@@ -71,12 +71,19 @@ app.use(session({
 
 
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { socketManager } from './socketManager.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+    console.log('Created uploads directory');
+}
+app.use('/uploads', express.static(uploadsDir));
 
 
 app.use('/api/auth', authRoutes);

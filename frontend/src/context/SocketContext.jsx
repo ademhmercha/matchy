@@ -49,7 +49,10 @@ export const SocketProvider = ({ children }) => {
                     });
                 }
             } catch (err) {
-                console.error('Socket initialization error:', err);
+                // 401 = pas connecté, c'est normal → pas d'erreur en console
+                if (err.response?.status !== 401) {
+                    console.error('Socket initialization error:', err);
+                }
             }
         };
 
