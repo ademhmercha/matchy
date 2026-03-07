@@ -14,11 +14,14 @@ export const SocketProvider = ({ children }) => {
     const socketRef = useRef();
 
     useEffect(() => {
-        // Fetch current user and initialize socket
+        // Fetch current user and initialize socket (401 = pas connecté, on ne log pas d'erreur)
         const initSocket = async () => {
             try {
-                const res = await axios.get(`${API_URL}/api/auth/check`, { withCredentials: true });
-                if (res.data.isAuthenticated) {
+                const res = await axios.get(`${API_URL}/api/auth/check`, {
+                    withCredentials: true,
+                    validateStatus: (status) => status === 200 || status === 401,
+                });
+                if (res.status === 200 && res.data?.isAuthenticated) {
                     const user = res.data.user;
                     setCurrentUser(user);
 
