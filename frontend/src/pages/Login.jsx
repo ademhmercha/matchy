@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
+import { API_URL } from '../config';
 import './Auth.css';
 
 const Login = () => {
@@ -21,7 +22,7 @@ const Login = () => {
         setLoading(true);
 
         try {
-            const res = await axios.post('http://localhost:5000/api/auth/login', formData, {
+            const res = await axios.post(`${API_URL}/api/auth/login`, formData, {
                 withCredentials: true,
             });
             if (res.data) {

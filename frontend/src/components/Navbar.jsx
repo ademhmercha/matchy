@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
+import { API_URL } from '../config';
 import Notification from './Notification';
 import './Navbar.css';
 
@@ -18,7 +19,7 @@ const Navbar = ({ onShowProfile }) => {
     useEffect(() => {
         const checkAuth = async () => {
             try {
-                const res = await axios.get('http://localhost:5000/api/auth/check', { withCredentials: true });
+                const res = await axios.get(`${API_URL}/api/auth/check`, { withCredentials: true });
                 setIsAuthenticated(res.data.isAuthenticated);
                 setUser(res.data.user);
             } catch (err) {
@@ -30,7 +31,7 @@ const Navbar = ({ onShowProfile }) => {
 
     const handleLogout = async () => {
         try {
-            await axios.post('http://localhost:5000/api/auth/logout', {}, { withCredentials: true });
+            await axios.post(`${API_URL}/api/auth/logout`, {}, { withCredentials: true });
             setIsAuthenticated(false);
             navigate('/login');
         } catch (err) {

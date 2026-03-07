@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
+import { API_URL } from '../config';
 import './Profile.css';
 
 const INTERESTS_OPTIONS = [
@@ -22,7 +23,7 @@ const Profile = () => {
     useEffect(() => {
         const fetchUser = async () => {
             try {
-                const res = await axios.get('http://localhost:5000/api/auth/check', { withCredentials: true });
+                const res = await axios.get(`${API_URL}/api/auth/check`, { withCredentials: true });
                 if (res.data.isAuthenticated) {
                     setUser(res.data.user);
                     setFirstName(res.data.user.firstName || '');
@@ -52,7 +53,7 @@ const Profile = () => {
         e.preventDefault();
         setIsSaving(true);
         try {
-            const res = await axios.put('http://localhost:5000/api/users/profile',
+            const res = await axios.put(`${API_URL}/api/users/profile`,
                 { firstName, bio, photos, interests },
                 { withCredentials: true }
             );
@@ -74,7 +75,7 @@ const Profile = () => {
         formData.append('photo', file);
 
         try {
-            const res = await axios.post('http://localhost:5000/api/users/upload-photo', formData, {
+            const res = await axios.post(`${API_URL}/api/users/upload-photo`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
                 withCredentials: true,
             });
@@ -83,7 +84,7 @@ const Profile = () => {
             const updatedPhotos = [...photos, newPhotoUrl];
             setPhotos(updatedPhotos);
 
-            await axios.put('http://localhost:5000/api/users/profile',
+            await axios.put(`${API_URL}/api/users/profile`,
                 { firstName, bio, photos: updatedPhotos, interests },
                 { withCredentials: true }
             );
@@ -152,7 +153,7 @@ const Profile = () => {
                     <div className="photos-grid">
                         {photos.map((photoUrl, index) => (
                             <div key={index} className="photo-card">
-                                <img src={`http://localhost:5000${photoUrl}`} alt={`Publication ${index + 1}`} />
+                                <img src={`${API_URL}${photoUrl}`} alt={`Publication ${index + 1}`} />
                             </div>
                         ))}
                         <div className="photo-card add-photo-card" onClick={() => fileInputRef.current.click()}>

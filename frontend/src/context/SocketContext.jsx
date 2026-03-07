@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { io } from 'socket.io-client';
 import axios from 'axios';
+import { API_URL } from '../config';
 
 const SocketContext = createContext();
 
@@ -16,12 +17,12 @@ export const SocketProvider = ({ children }) => {
         // Fetch current user and initialize socket
         const initSocket = async () => {
             try {
-                const res = await axios.get('http://localhost:5000/api/auth/check', { withCredentials: true });
+                const res = await axios.get(`${API_URL}/api/auth/check`, { withCredentials: true });
                 if (res.data.isAuthenticated) {
                     const user = res.data.user;
                     setCurrentUser(user);
 
-                    const newSocket = io('http://localhost:5000');
+                    const newSocket = io(API_URL);
                     socketRef.current = newSocket;
                     setSocket(newSocket);
 

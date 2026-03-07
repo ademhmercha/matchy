@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
+import { API_URL } from '../config';
 import './Admin.css';
 
 const Admin = () => {
@@ -16,8 +17,8 @@ const Admin = () => {
     const fetchAdminData = async () => {
         try {
             // Intentionally omitting sophisticated error handling here for brevity since it's a demo
-            const statsRes = await axios.get('http://localhost:5000/api/admin/stats', { withCredentials: true });
-            const usersRes = await axios.get('http://localhost:5000/api/admin/users', { withCredentials: true });
+            const statsRes = await axios.get(`${API_URL}/api/admin/stats`, { withCredentials: true });
+            const usersRes = await axios.get(`${API_URL}/api/admin/users`, { withCredentials: true });
 
             setStats(statsRes.data);
             setUsers(usersRes.data);
@@ -32,7 +33,7 @@ const Admin = () => {
         if (!window.confirm(t('admin.deleteConfirm'))) return;
 
         try {
-            await axios.delete(`http://localhost:5000/api/admin/users/${id}`, { withCredentials: true });
+            await axios.delete(`${API_URL}/api/admin/users/${id}`, { withCredentials: true });
             setUsers(users.filter(u => u._id !== id));
             setStats(prev => ({ userCount: prev.userCount - 1 }));
         } catch (err) {

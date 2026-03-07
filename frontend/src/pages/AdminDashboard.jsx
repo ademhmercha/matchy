@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
+import { API_URL } from '../config';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
@@ -19,8 +20,7 @@ const AdminDashboard = () => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const API_BASE = 'http://localhost:5000';
-            const endpoint = `${API_BASE}/api/admin/${activeTab}`;
+            const endpoint = `${API_URL}/api/admin/${activeTab}`;
             const res = await axios.get(endpoint, { withCredentials: true });
 
             if (activeTab === 'stats') setStats(res.data);
@@ -39,7 +39,7 @@ const AdminDashboard = () => {
     const handleUserStatus = async (userId, currentStatus) => {
         const newStatus = currentStatus === 'active' ? 'banned' : 'active';
         try {
-            await axios.post(`http://localhost:5000/api/admin/users/${userId}/status`, { status: newStatus }, { withCredentials: true });
+            await axios.post(`${API_URL}/api/admin/users/${userId}/status`, { status: newStatus }, { withCredentials: true });
             fetchData();
         } catch (err) {
             alert(t('admin.statusUpdateError'));
@@ -135,7 +135,7 @@ const AdminDashboard = () => {
                                         <div className="report-reason">{t('admin.reports.reason')}: {report.reason}</div>
                                         {report.evidence && (
                                             <div className="report-evidence">
-                                                <img src={`http://localhost:5000${report.evidence}`} alt="Evidence" className="admin-report-img" />
+                                                <img src={`${API_URL}${report.evidence}`} alt="Evidence" className="admin-report-img" />
                                             </div>
                                         )}
                                         <div className="report-actions">

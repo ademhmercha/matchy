@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
+import { API_URL } from '../config';
 import './UserProfileModal.css';
 
 import ReportModal from './ReportModal';
@@ -16,7 +17,7 @@ const UserProfileModal = ({ userId, onClose, onUnmatch }) => {
         if (!userId) return;
         const fetchProfile = async () => {
             try {
-                const res = await axios.get(`http://localhost:5000/api/users/profile/${userId}`, { withCredentials: true });
+                const res = await axios.get(`${API_URL}/api/users/profile/${userId}`, { withCredentials: true });
                 setUser(res.data);
             } catch (error) {
                 console.error('Error fetching user profile:', error);
@@ -37,7 +38,7 @@ const UserProfileModal = ({ userId, onClose, onUnmatch }) => {
     const handleUnmatch = async () => {
         if (window.confirm(t('profile.unmatchConfirm', { name: user.firstName }))) {
             try {
-                await axios.delete(`http://localhost:5000/api/users/unmatch/${userId}`, { withCredentials: true });
+                await axios.delete(`${API_URL}/api/users/unmatch/${userId}`, { withCredentials: true });
                 onUnmatch(userId);
                 onClose();
             } catch (error) {
@@ -83,7 +84,7 @@ const UserProfileModal = ({ userId, onClose, onUnmatch }) => {
                             </div>
                             <div className="profile-photos-carousel" onScroll={handleScroll}>
                                 {user.photos && user.photos.map((url, idx) => (
-                                    <img key={idx} src={`http://localhost:5000${url}`} alt={user.firstName} className="profile-carousel-img" />
+                                    <img key={idx} src={`${API_URL}${url}`} alt={user.firstName} className="profile-carousel-img" />
                                 ))}
                             </div>
                             <div className="photos-overlay-gradient"></div>

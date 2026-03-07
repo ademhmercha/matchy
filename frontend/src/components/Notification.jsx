@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useSocket } from '../context/SocketContext';
 import { useTranslation } from 'react-i18next';
+import { API_URL } from '../config';
 import './Notification.css';
 
 const Notification = ({ onShowProfile }) => {
@@ -43,7 +44,7 @@ const Notification = ({ onShowProfile }) => {
                                     </div>
                                     {notif.type === 'match' && (
                                         <div className="notification-avatar">
-                                            <img src={`http://localhost:5000${notif.data.matchPhoto}`} alt="Match" />
+                                            <img src={`${API_URL}${notif.data.matchPhoto}`} alt="Match" />
                                         </div>
                                     )}
                                 </div>

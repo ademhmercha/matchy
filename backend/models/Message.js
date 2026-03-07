@@ -17,8 +17,12 @@ const messageSchema = new mongoose.Schema({
     },
     type: {
         type: String,
-        enum: ['text', 'audio', 'call'],
+        enum: ['text', 'audio', 'call', 'gif'],
         default: 'text',
+    },
+    read: {
+        type: Boolean,
+        default: false,
     },
 }, { timestamps: true });
 

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { useSocket } from '../context/SocketContext';
+import { API_URL } from '../config';
 import './ChatApp.css';
 
 const ChatApp = ({ onShowProfile }) => {
@@ -13,6 +14,12 @@ const ChatApp = ({ onShowProfile }) => {
     const { socket, currentUser } = useSocket();
     const [isRecording, setIsRecording] = useState(false);
     const [audioBlob, setAudioBlob] = useState(null);
+    const [showGifPicker, setShowGifPicker] = useState(false);
+    const [gifSearch, setGifSearch] = useState('');
+    const [gifs, setGifs] = useState([]);
+    const [gifLoading, setGifLoading] = useState(false);
+    const activeMatchRef = useRef(null);
+    const GIPHY_API_KEY = import.meta.env.VITE_GIPHY_API_KEY || '';
 
     const [callerSignal, setCallerSignal] = useState(null);
     const [callAccepted, setCallAccepted] = useState(false);
@@ -48,10 +55,26 @@ const ChatApp = ({ onShowProfile }) => {
     }, [remoteStream]);
 
     useEffect(() => {
+        activeMatchRef.current = activeMatch;
+    }, [activeMatch]);
+
+    useEffect(() => {
         if (!socket || !currentUser) return;
         socketRef.current = socket;
 
-        const handleReceiveMessage = (msg) => setMessages(prev => [...prev, msg]);
+        const handleReceiveMessage = (msg) => {
+            setMessages(prev => [...prev, msg]);
+            const msgSenderId = msg.sender?._id?.toString() || msg.sender?.toString();
+            if (activeMatchRef.current?._id?.toString() === msgSenderId) {
+                socket.emit('mark_read', { senderId: msgSenderId, receiverId: currentUser._id });
+            }
+        };
+        const handleMessagesRead = () => {
+            setMessages(prev => prev.map(m => {
+                const mSenderId = m.sender?._id?.toString() || m.sender?.toString();
+                return mSenderId === currentUser._id?.toString() ? { ...m, read: true } : m;
+            }));
+        };
         const handleMessageSent = (msg) => setMessages(prev => [...prev, msg]);
         const handleCallUser = (data) => {
             setReceivingCall(true);
@@ -91,6 +114,7 @@ const ChatApp = ({ onShowProfile }) => {
 
         socket.on('receive_message', handleReceiveMessage);
         socket.on('message_sent', handleMessageSent);
+        socket.on('messages_read', handleMessagesRead);
         socket.on('call_user', handleCallUser);
         socket.on('call_accepted', handleCallAccepted);
         socket.on('ice_candidate', handleIceCandidate);
@@ -98,7 +122,7 @@ const ChatApp = ({ onShowProfile }) => {
 
         const fetchMatches = async () => {
             try {
-                const matchesRes = await axios.get('http://localhost:5000/api/users/matches', { withCredentials: true });
+                const matchesRes = await axios.get(`${API_URL}/api/users/matches`, { withCredentials: true });
                 setMatches(matchesRes.data);
             } catch (err) {
                 console.error('Failed to load matches:', err);
@@ -109,6 +133,7 @@ const ChatApp = ({ onShowProfile }) => {
         return () => {
             socket.off('receive_message', handleReceiveMessage);
             socket.off('message_sent', handleMessageSent);
+            socket.off('messages_read', handleMessagesRead);
             socket.off('call_user', handleCallUser);
             socket.off('call_accepted', handleCallAccepted);
             socket.off('ice_candidate', handleIceCandidate);
@@ -122,12 +147,44 @@ const ChatApp = ({ onShowProfile }) => {
 
     const loadChat = async (match) => {
         setActiveMatch(match);
+        setShowGifPicker(false);
         try {
-            const res = await axios.get(`http://localhost:5000/api/messages/history/${match._id}`, { withCredentials: true });
+            const res = await axios.get(`${API_URL}/api/messages/history/${match._id}`, { withCredentials: true });
             setMessages(res.data);
+            socketRef.current?.emit('mark_read', { senderId: match._id, receiverId: currentUser._id });
         } catch (err) {
             console.error('Error loading chat history:', err);
         }
+    };
+
+    const fetchGifs = async (query = '') => {
+        if (!GIPHY_API_KEY) return;
+        setGifLoading(true);
+        try {
+            const url = query
+                ? `https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_API_KEY}&q=${encodeURIComponent(query)}&limit=12&rating=g`
+                : `https://api.giphy.com/v1/gifs/trending?api_key=${GIPHY_API_KEY}&limit=12&rating=g`;
+            const res = await fetch(url);
+            const json = await res.json();
+            setGifs(json.data || []);
+        } catch (err) {
+            console.error('Error fetching GIFs:', err);
+        } finally {
+            setGifLoading(false);
+        }
+    };
+
+    const sendGif = (gifUrl) => {
+        if (!activeMatch || !currentUser) return;
+        socketRef.current.emit('send_message', {
+            senderId: currentUser._id,
+            receiverId: activeMatch._id,
+            content: gifUrl,
+            type: 'gif',
+        });
+        setShowGifPicker(false);
+        setGifs([]);
+        setGifSearch('');
     };
 
     const startRecording = async () => {
@@ -162,7 +219,7 @@ const ChatApp = ({ onShowProfile }) => {
         try {
             const formData = new FormData();
             formData.append('audio', audioBlob, 'voice-message.webm');
-            const uploadRes = await axios.post('http://localhost:5000/api/messages/upload-audio', formData, {
+            const uploadRes = await axios.post(`${API_URL}/api/messages/upload-audio`, formData, {
                 withCredentials: true,
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
@@ -325,7 +382,7 @@ const ChatApp = ({ onShowProfile }) => {
                                 >
                                     <div className="match-avatar bg-pink">
                                         {match.photos && match.photos.length > 0 ? (
-                                            <img src={`http://localhost:5000${match.photos[0]}`} alt={match.firstName} />
+                                            <img src={`${API_URL}${match.photos[0]}`} alt={match.firstName} />
                                         ) : (
                                             <span>{match.firstName[0]}</span>
                                         )}
@@ -344,7 +401,7 @@ const ChatApp = ({ onShowProfile }) => {
                                 <div className="active-match-info" onClick={() => onShowProfile(activeMatch._id)}>
                                     <div className="match-avatar-small bg-pink">
                                         {activeMatch.photos && activeMatch.photos.length > 0 ? (
-                                            <img src={`http://localhost:5000${activeMatch.photos[0]}`} alt={activeMatch.firstName} />
+                                            <img src={`${API_URL}${activeMatch.photos[0]}`} alt={activeMatch.firstName} />
                                         ) : (
                                             <span>{activeMatch.firstName[0]}</span>
                                         )}
@@ -379,7 +436,7 @@ const ChatApp = ({ onShowProfile }) => {
                                         <div className="audio-call-ui">
                                             <div className="audio-avatar pulse">
                                                 {activeMatch.photos?.[0] ? (
-                                                    <img src={`http://localhost:5000${activeMatch.photos[0]}`} alt={activeMatch.firstName} />
+                                                    <img src={`${API_URL}${activeMatch.photos[0]}`} alt={activeMatch.firstName} />
                                                 ) : (
                                                     <span>{activeMatch.firstName[0]}</span>
                                                 )}
@@ -401,25 +458,42 @@ const ChatApp = ({ onShowProfile }) => {
 
                             <div className="messages-container">
                                 {messages.map((msg, idx) => {
-                                    const isMine = msg.sender === currentUser._id;
+                                    const msgSenderId = msg.sender?._id?.toString() || msg.sender?.toString();
+                                    const isMine = msgSenderId === currentUser._id?.toString();
                                     const isCall = msg.type === 'call';
-                                    return (
-                                        <div key={idx} className={`message-bubble ${isMine ? 'mine' : 'theirs'} ${msg.type === 'audio' ? 'message-audio-bubble' : ''} ${isCall ? 'message-call-bubble' : ''}`}>
-                                            {msg.type === 'audio' ? (
-                                                <audio
-                                                    src={msg.content.startsWith('http') ? msg.content : `http://localhost:5000${msg.content}`}
-                                                    controls
-                                                    className="audio-player"
-                                                />
-                                            ) : isCall ? (
+                                    const isAudio = msg.type === 'audio';
+                                    const isGif = msg.type === 'gif';
+
+                                    if (isCall) {
+                                        return (
+                                            <div key={idx} className="message-bubble message-call-bubble">
                                                 <div className="call-log-content">
                                                     <span>{msg.content === 'video' ? '📹' : '📞'}</span>
-                                                    <span>
-                                                        {msg.content === 'video' ? t('chat.videoCall') : t('chat.audioCall')} {t('chat.callEnded')}
-                                                    </span>
+                                                    <span>{msg.content === 'video' ? t('chat.videoCall') : t('chat.audioCall')} {t('chat.callEnded')}</span>
                                                 </div>
-                                            ) : (
-                                                msg.content
+                                            </div>
+                                        );
+                                    }
+
+                                    return (
+                                        <div key={idx} className={`message-row ${isMine ? 'mine' : 'theirs'}`}>
+                                            <div className={`message-bubble ${isMine ? 'mine' : 'theirs'} ${isAudio ? 'message-audio-bubble' : ''} ${isGif ? 'message-gif-bubble' : ''}`}>
+                                                {isAudio ? (
+                                                    <audio
+                                                        src={msg.content.startsWith('http') ? msg.content : `${API_URL}${msg.content}`}
+                                                        controls
+                                                        className="audio-player"
+                                                    />
+                                                ) : isGif ? (
+                                                    <img src={msg.content} alt="GIF" className="message-gif-img" />
+                                                ) : (
+                                                    msg.content
+                                                )}
+                                            </div>
+                                            {isMine && (
+                                                <span className={`read-receipt ${msg.read ? 'read' : ''}`}>
+                                                    {msg.read ? '✓✓' : '✓'}
+                                                </span>
                                             )}
                                         </div>
                                     );
@@ -427,37 +501,78 @@ const ChatApp = ({ onShowProfile }) => {
                                 <div ref={messagesEndRef} />
                             </div>
 
-                            <form className="chat-input-form" onSubmit={sendMessage}>
-                                {isRecording ? (
-                                    <div className="audio-recording-ui">
-                                        <span className="recording-dot"></span>
-                                        <span>{t('chat.recording')}</span>
-                                        <button type="button" className="btn-stop" onClick={stopRecording}>{t('chat.stop')}</button>
-                                    </div>
-                                ) : audioBlob ? (
-                                    <div className="audio-preview-ui">
-                                        <audio src={window.URL.createObjectURL(audioBlob)} controls className="audio-preview-player" />
-                                        <div className="audio-preview-actions">
-                                            <button type="button" className="btn-send-audio" onClick={sendAudioMessage}>{t('chat.send')}</button>
-                                            <button type="button" className="btn-discard" onClick={() => setAudioBlob(null)}>{t('chat.discard')}</button>
+                            <div className="chat-input-wrapper">
+                                {showGifPicker && (
+                                    <div className="gif-picker">
+                                        <div className="gif-search-bar">
+                                            <input
+                                                type="text"
+                                                placeholder="Rechercher des GIFs..."
+                                                value={gifSearch}
+                                                onChange={(e) => setGifSearch(e.target.value)}
+                                                onKeyDown={(e) => e.key === 'Enter' && fetchGifs(gifSearch)}
+                                                className="input-base gif-search-input"
+                                            />
+                                            <button type="button" className="gif-search-btn" onClick={() => fetchGifs(gifSearch)}>🔍</button>
                                         </div>
+                                        {!GIPHY_API_KEY ? (
+                                            <div className="gif-no-key">
+                                                <p>Ajoute <code>VITE_GIPHY_API_KEY</code> dans le fichier <code>frontend/.env</code></p>
+                                            </div>
+                                        ) : gifLoading ? (
+                                            <div className="gif-loading">Chargement…</div>
+                                        ) : (
+                                            <div className="gif-grid">
+                                                {gifs.map(gif => (
+                                                    <img
+                                                        key={gif.id}
+                                                        src={gif.images.fixed_height_small?.url || gif.images.fixed_height?.url}
+                                                        alt={gif.title}
+                                                        className="gif-thumbnail"
+                                                        onClick={() => sendGif(gif.images.fixed_height?.url || gif.images.original?.url)}
+                                                    />
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
-                                ) : (
-                                    <>
-                                        <button type="button" className="mic-btn" onClick={startRecording}>🎤</button>
-                                        <input
-                                            type="text"
-                                            className="input-base chat-input"
-                                            placeholder={t('chat.typeMessage')}
-                                            value={newMessage}
-                                            onChange={(e) => setNewMessage(e.target.value)}
-                                        />
-                                        <button type="submit" className="btn-primary" disabled={!newMessage.trim()}>
-                                            {t('chat.send')}
-                                        </button>
-                                    </>
                                 )}
-                            </form>
+                                <form className="chat-input-form" onSubmit={sendMessage}>
+                                    {isRecording ? (
+                                        <div className="audio-recording-ui">
+                                            <span className="recording-dot"></span>
+                                            <span>{t('chat.recording')}</span>
+                                            <button type="button" className="btn-stop" onClick={stopRecording}>{t('chat.stop')}</button>
+                                        </div>
+                                    ) : audioBlob ? (
+                                        <div className="audio-preview-ui">
+                                            <audio src={window.URL.createObjectURL(audioBlob)} controls className="audio-preview-player" />
+                                            <div className="audio-preview-actions">
+                                                <button type="button" className="btn-send-audio" onClick={sendAudioMessage}>{t('chat.send')}</button>
+                                                <button type="button" className="btn-discard" onClick={() => setAudioBlob(null)}>{t('chat.discard')}</button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <button type="button" className="mic-btn" onClick={startRecording}>🎤</button>
+                                            <button
+                                                type="button"
+                                                className={`gif-btn ${showGifPicker ? 'active' : ''}`}
+                                                onClick={() => { setShowGifPicker(v => !v); if (!showGifPicker) fetchGifs(); }}
+                                            >GIF</button>
+                                            <input
+                                                type="text"
+                                                className="input-base chat-input"
+                                                placeholder={t('chat.typeMessage')}
+                                                value={newMessage}
+                                                onChange={(e) => setNewMessage(e.target.value)}
+                                            />
+                                            <button type="submit" className="btn-primary" disabled={!newMessage.trim()}>
+                                                {t('chat.send')}
+                                            </button>
+                                        </>
+                                    )}
+                                </form>
+                            </div>
                         </>
                     ) : (
                         <div className="empty-chat-state">

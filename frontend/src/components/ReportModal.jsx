@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
+import { API_URL } from '../config';
 import './ReportModal.css';
 
 const ReportModal = ({ reportedUserId, reportedUserName, onClose }) => {
@@ -29,14 +30,14 @@ const ReportModal = ({ reportedUserId, reportedUserName, onClose }) => {
             if (evidence) {
                 const formData = new FormData();
                 formData.append('photo', evidence);
-                const uploadRes = await axios.post('http://localhost:5000/api/users/upload-photo', formData, {
+                const uploadRes = await axios.post(`${API_URL}/api/users/upload-photo`, formData, {
                     withCredentials: true,
                     headers: { 'Content-Type': 'multipart/form-data' }
                 });
                 photoUrl = uploadRes.data.url;
             }
 
-            await axios.post('http://localhost:5000/api/users/report', {
+            await axios.post(`${API_URL}/api/users/report`, {
                 reportedUserId,
                 reason: `${reason}: ${details}`,
                 evidence: photoUrl

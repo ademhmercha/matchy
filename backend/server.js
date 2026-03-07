@@ -17,18 +17,20 @@ import { createAuditLog } from './utils/logger.js';
 
 dotenv.config();
 
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
     cors: {
-        origin: 'http://localhost:5173',
+        origin: FRONTEND_URL,
         methods: ['GET', 'POST'],
         credentials: true,
     },
 });
 
 app.use(cors({
-    origin: 'http://localhost:5173',
+    origin: FRONTEND_URL,
     credentials: true,
 }));
 app.use(express.json());
@@ -137,6 +139,21 @@ io.on('connection', (socket) => {
         const receiverSocketId = socketManager.getSocketId(to);
         if (receiverSocketId) {
             io.to(receiverSocketId).emit('ice_candidate', candidate);
+        }
+    });
+
+    socket.on('mark_read', async ({ senderId, receiverId }) => {
+        try {
+            await Message.updateMany(
+                { sender: senderId, receiver: receiverId, read: false },
+                { $set: { read: true } }
+            );
+            const senderSocketId = socketManager.getSocketId(senderId);
+            if (senderSocketId) {
+                io.to(senderSocketId).emit('messages_read', { readBy: receiverId });
+            }
+        } catch (error) {
+            console.error('Error marking messages as read:', error);
         }
     });
 

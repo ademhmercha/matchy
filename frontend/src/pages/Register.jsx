@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
+import { API_URL } from '../config';
 import './Auth.css';
 
 const INTERESTS_OPTIONS = [
@@ -52,7 +53,7 @@ const Register = () => {
         uploadData.append('photo', file);
 
         try {
-            const res = await axios.post('http://localhost:5000/api/users/upload-photo', uploadData, {
+            const res = await axios.post(`${API_URL}/api/users/upload-photo`, uploadData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
                 withCredentials: true,
             });
@@ -75,7 +76,7 @@ const Register = () => {
         setLoading(true);
 
         try {
-            const res = await axios.post('http://localhost:5000/api/auth/register', formData, {
+            const res = await axios.post(`${API_URL}/api/auth/register`, formData, {
                 withCredentials: true,
             });
             if (res.data) {
@@ -190,7 +191,7 @@ const Register = () => {
                                 <div className="registration-photos-grid">
                                     {formData.photos.map((url, idx) => (
                                         <div key={idx} className="reg-photo-preview">
-                                            <img src={`http://localhost:5000${url}`} alt="Preview" />
+                                            <img src={`${API_URL}${url}`} alt="Preview" />
                                         </div>
                                     ))}
                                     {formData.photos.length < 3 && (

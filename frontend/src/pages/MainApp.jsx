@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { API_URL } from '../config';
 import './MainApp.css';
 
 const MainApp = () => {
@@ -17,13 +18,13 @@ const MainApp = () => {
         // Check auth and fetch profiles
         const initialize = async () => {
             try {
-                const authRes = await axios.get('http://localhost:5000/api/auth/check', { withCredentials: true });
+                const authRes = await axios.get(`${API_URL}/api/auth/check`, { withCredentials: true });
                 if (!authRes.data.isAuthenticated) {
                     navigate('/login');
                     return;
                 }
 
-                const profilesRes = await axios.get('http://localhost:5000/api/users/profiles', { withCredentials: true });
+                const profilesRes = await axios.get(`${API_URL}/api/users/profiles`, { withCredentials: true });
                 setProfiles(profilesRes.data);
             } catch (err) {
                 if (err.response?.status === 401) {
@@ -48,7 +49,7 @@ const MainApp = () => {
         setCurrentIndex(prev => prev + 1);
 
         try {
-            const res = await axios.post(`http://localhost:5000/api/users/like/${profileId}`, { action }, { withCredentials: true });
+            const res = await axios.post(`${API_URL}/api/users/like/${profileId}`, { action }, { withCredentials: true });
             if (res.data.isMatch) {
                 setMatchNotification(profiles[currentIndex]);
                 setTimeout(() => setMatchNotification(null), 3000); // Hide after 3s
