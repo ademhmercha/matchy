@@ -18,21 +18,34 @@ import { createAuditLog } from './utils/logger.js';
 dotenv.config();
 
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+// Plusieurs origines possibles (séparées par des virgules) + tout sous-domaine *.vercel.app
+const allowedOrigins = FRONTEND_URL.split(',').map(s => s.trim()).filter(Boolean);
+const corsOptions = {
+    origin: (origin, cb) => {
+        if (!origin) return cb(null, true);
+        if (allowedOrigins.includes(origin)) return cb(null, true);
+        if (origin.endsWith('.vercel.app')) return cb(null, true);
+        cb(new Error('Not allowed by CORS'));
+    },
+    credentials: true,
+};
 
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
     cors: {
-        origin: FRONTEND_URL,
+        origin: (origin, cb) => {
+            if (!origin) return cb(null, true);
+            if (allowedOrigins.includes(origin)) return cb(null, true);
+            if (origin.endsWith('.vercel.app')) return cb(null, true);
+            cb(new Error('Not allowed by CORS'));
+        },
         methods: ['GET', 'POST'],
         credentials: true,
     },
 });
 
-app.use(cors({
-    origin: FRONTEND_URL,
-    credentials: true,
-}));
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
