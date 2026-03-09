@@ -25,7 +25,8 @@ const Login = () => {
             const res = await axios.post(`${API_URL}/api/auth/login`, formData, {
                 withCredentials: true,
             });
-            if (res.data) {
+            if (res.data?.token) {
+                localStorage.setItem('token', res.data.token);
                 navigate('/app');
             }
         } catch (err) {

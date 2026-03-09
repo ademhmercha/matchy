@@ -22,19 +22,14 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-const requireAuth = (req, res, next) => {
-    if (!req.session.userId) {
-        return res.status(401).json({ message: 'Unauthorized' });
-    }
-    next();
-};
+import { requireAuth } from '../utils/jwtAuth.js';
 
 router.use(requireAuth);
 
 // Get chat history with a specific user
 router.get('/history/:contactId', async (req, res) => {
     try {
-        const currentUserId = req.session.userId;
+        const currentUserId = req.userId;
         const { contactId } = req.params;
 
         const messages = await Message.find({

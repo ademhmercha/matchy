@@ -25,12 +25,7 @@ const upload = multer({ storage });
 router.post('/upload', upload.single('photo'), uploadPhoto);
 router.post('/upload-photo', upload.single('photo'), uploadPhoto);
 
-const requireAuth = (req, res, next) => {
-    if (!req.session.userId) {
-        return res.status(401).json({ message: 'Unauthorized' });
-    }
-    next();
-};
+import { requireAuth } from '../utils/jwtAuth.js';
 
 router.use(requireAuth);
 

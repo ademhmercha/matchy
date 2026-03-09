@@ -5,7 +5,7 @@ import { createAuditLog } from '../utils/logger.js';
 
 export const getProfiles = async (req, res) => {
     try {
-        const currentUserId = req.session.userId;
+        const currentUserId = req.userId;
         const currentUser = await User.findById(currentUserId);
 
         if (currentUser.status === 'banned') {
@@ -33,7 +33,7 @@ export const getProfiles = async (req, res) => {
 
 export const likeProfile = async (req, res) => {
     try {
-        const currentUserId = req.session.userId;
+        const currentUserId = req.userId;
         const targetUserId = req.params.id;
         const { action } = req.body; // 'like' or 'dislike'
 
@@ -100,7 +100,7 @@ export const likeProfile = async (req, res) => {
 
 export const getMatches = async (req, res) => {
     try {
-        const currentUserId = req.session.userId;
+        const currentUserId = req.userId;
         const user = await User.findById(currentUserId).populate('matches', '-password');
         res.status(200).json(user.matches);
     } catch (error) {
@@ -111,7 +111,7 @@ export const getMatches = async (req, res) => {
 
 export const updateProfile = async (req, res) => {
     try {
-        const currentUserId = req.session.userId;
+        const currentUserId = req.userId;
         const { firstName, bio, photos } = req.body; // Expecting an array of photo URLs
 
         const user = await User.findByIdAndUpdate(
@@ -152,8 +152,8 @@ export const uploadPhoto = async (req, res) => {
 
         const photoUrl = `/uploads/${req.file.filename}`;
 
-        if (req.session.userId) {
-            await createAuditLog('PHOTO_UPLOAD', req.session.userId, { url: photoUrl });
+        if (req.userId) {
+            await createAuditLog('PHOTO_UPLOAD', req.userId, { url: photoUrl });
         }
 
         res.status(200).json({ url: photoUrl });
@@ -166,7 +166,7 @@ export const uploadPhoto = async (req, res) => {
 export const reportUser = async (req, res) => {
     try {
         const { reportedUserId, reason, evidence } = req.body;
-        const reporterId = req.session.userId;
+        const reporterId = req.userId;
 
         const report = new Report({
             reporter: reporterId,
@@ -199,7 +199,7 @@ export const getMatchProfile = async (req, res) => {
 
 export const unmatchUser = async (req, res) => {
     try {
-        const currentUserId = req.session.userId;
+        const currentUserId = req.userId;
         const { id: targetUserId } = req.params;
 
         const currentUser = await User.findById(currentUserId);

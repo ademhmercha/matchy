@@ -32,14 +32,10 @@ const Navbar = ({ onShowProfile }) => {
         checkAuth();
     }, []);
 
-    const handleLogout = async () => {
-        try {
-            await axios.post(`${API_URL}/api/auth/logout`, {}, { withCredentials: true });
-            setIsAuthenticated(false);
-            navigate('/login');
-        } catch (err) {
-            console.error('Logout failed');
-        }
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        setIsAuthenticated(false);
+        navigate('/login');
     };
 
     return (

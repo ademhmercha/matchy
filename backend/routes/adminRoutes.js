@@ -7,19 +7,20 @@ import { createAuditLog } from '../utils/logger.js';
 const router = express.Router();
 
 
+import { requireAuth } from '../utils/jwtAuth.js';
+
 const requireAdmin = async (req, res, next) => {
-    try {
-        if (!req.session.userId) {
-            return res.status(401).json({ message: 'Unauthorized' });
+    requireAuth(req, res, async () => {
+        try {
+            const user = await User.findById(req.userId);
+            if (!user || user.role !== 'admin') {
+                return res.status(403).json({ message: 'Forbidden: Admin access required' });
+            }
+            next();
+        } catch (error) {
+            res.status(500).json({ message: 'Server error during admin check' });
         }
-        const user = await User.findById(req.session.userId);
-        if (!user || user.role !== 'admin') {
-            return res.status(403).json({ message: 'Forbidden: Admin access required' });
-        }
-        next();
-    } catch (error) {
-        res.status(500).json({ message: 'Server error during admin check' });
-    }
+    });
 };
 
 router.use(requireAdmin);
@@ -95,7 +96,7 @@ router.post('/users/:id/status', async (req, res) => {
         const { status } = req.body; // 'active' or 'banned'
         const user = await User.findByIdAndUpdate(req.params.id, { status }, { new: true });
 
-        await createAuditLog('BAN_UPDATE', req.session.userId, { newStatus: status }, req.params.id);
+        await createAuditLog('BAN_UPDATE', req.userId, { newStatus: status }, req.params.id);
 
         res.status(200).json({ message: `User status updated to ${status}`, user });
     } catch (error) {
