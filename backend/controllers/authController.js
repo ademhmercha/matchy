@@ -21,8 +21,9 @@ export const register = async (req, res) => {
         });
         await newUser.save();
 
-        // Set session
+        // Set session and wait for it to be persisted before responding
         req.session.userId = newUser._id;
+        await new Promise((resolve, reject) => req.session.save((err) => err ? reject(err) : resolve()));
 
         // Log activity
         await createAuditLog('REGISTER', newUser._id, { email: emailOrPhone });
@@ -53,8 +54,9 @@ export const login = async (req, res) => {
             return res.status(403).json({ message: 'Your account has been banned' });
         }
 
-        // Set session
+        // Set session and wait for it to be persisted before responding
         req.session.userId = user._id;
+        await new Promise((resolve, reject) => req.session.save((err) => err ? reject(err) : resolve()));
 
         // Log activity
         await createAuditLog('LOGIN', user._id);
