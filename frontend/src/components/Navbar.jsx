@@ -19,15 +19,18 @@ const Navbar = ({ onShowProfile }) => {
     useEffect(() => {
         const checkAuth = async () => {
             try {
-                const res = await axios.get(`${API_URL}/api/auth/check`, { withCredentials: true });
-                setIsAuthenticated(res.data.isAuthenticated);
-                setUser(res.data.user);
+                const res = await axios.get(`${API_URL}/api/auth/check`, {
+                    withCredentials: true,
+                    validateStatus: (status) => status === 200 || status === 401,
+                });
+                setIsAuthenticated(res.data?.isAuthenticated || false);
+                setUser(res.data?.user || null);
             } catch (err) {
                 setIsAuthenticated(false);
             }
         };
         checkAuth();
-    }, [navigate]);
+    }, []);
 
     const handleLogout = async () => {
         try {
