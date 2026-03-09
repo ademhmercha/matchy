@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { io } from 'socket.io-client';
 import axios from 'axios';
-import { API_URL } from '../config';
+import { API_URL, SOCKET_URL } from '../config';
 
 const SocketContext = createContext();
 
@@ -25,7 +25,7 @@ export const SocketProvider = ({ children }) => {
                     const user = res.data.user;
                     setCurrentUser(user);
 
-                    const newSocket = io(API_URL);
+                    const newSocket = io(SOCKET_URL);
                     socketRef.current = newSocket;
                     setSocket(newSocket);
 
