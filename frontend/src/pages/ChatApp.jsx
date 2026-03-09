@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { useSocket } from '../context/SocketContext';
-import { API_URL } from '../config';
+import { API_URL, getPhotoUrl } from '../config';
 import './ChatApp.css';
 
 const ChatApp = ({ onShowProfile }) => {
@@ -382,7 +382,7 @@ const ChatApp = ({ onShowProfile }) => {
                                 >
                                     <div className="match-avatar bg-pink">
                                         {match.photos && match.photos.length > 0 ? (
-                                            <img src={`${API_URL}${match.photos[0]}`} alt={match.firstName} />
+                                            <img src={getPhotoUrl(match.photos[0])} alt={match.firstName} />
                                         ) : (
                                             <span>{match.firstName[0]}</span>
                                         )}
@@ -401,7 +401,7 @@ const ChatApp = ({ onShowProfile }) => {
                                 <div className="active-match-info" onClick={() => onShowProfile(activeMatch._id)}>
                                     <div className="match-avatar-small bg-pink">
                                         {activeMatch.photos && activeMatch.photos.length > 0 ? (
-                                            <img src={`${API_URL}${activeMatch.photos[0]}`} alt={activeMatch.firstName} />
+                                            <img src={getPhotoUrl(activeMatch.photos[0])} alt={activeMatch.firstName} />
                                         ) : (
                                             <span>{activeMatch.firstName[0]}</span>
                                         )}
@@ -436,7 +436,7 @@ const ChatApp = ({ onShowProfile }) => {
                                         <div className="audio-call-ui">
                                             <div className="audio-avatar pulse">
                                                 {activeMatch.photos?.[0] ? (
-                                                    <img src={`${API_URL}${activeMatch.photos[0]}`} alt={activeMatch.firstName} />
+                                                    <img src={getPhotoUrl(activeMatch.photos[0])} alt={activeMatch.firstName} />
                                                 ) : (
                                                     <span>{activeMatch.firstName[0]}</span>
                                                 )}

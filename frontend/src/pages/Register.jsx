@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
-import { API_URL } from '../config';
+import { API_URL, getPhotoUrl } from '../config';
 import './Auth.css';
 
 const INTERESTS_OPTIONS = [
@@ -192,7 +192,7 @@ const Register = () => {
                                 <div className="registration-photos-grid">
                                     {formData.photos.map((url, idx) => (
                                         <div key={idx} className="reg-photo-preview">
-                                            <img src={`${API_URL}${url}`} alt="Preview" />
+                                            <img src={getPhotoUrl(url)} alt="Preview" />
                                         </div>
                                     ))}
                                     {formData.photos.length < 3 && (

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
-import { API_URL } from '../config';
+import { API_URL, getPhotoUrl } from '../config';
 import './UserProfileModal.css';
 
 import ReportModal from './ReportModal';
@@ -84,7 +84,7 @@ const UserProfileModal = ({ userId, onClose, onUnmatch }) => {
                             </div>
                             <div className="profile-photos-carousel" onScroll={handleScroll}>
                                 {user.photos && user.photos.map((url, idx) => (
-                                    <img key={idx} src={`${API_URL}${url}`} alt={user.firstName} className="profile-carousel-img" />
+                                    <img key={idx} src={getPhotoUrl(url)} alt={user.firstName} className="profile-carousel-img" />
                                 ))}
                             </div>
                             <div className="photos-overlay-gradient"></div>

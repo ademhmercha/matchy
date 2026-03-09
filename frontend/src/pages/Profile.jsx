@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
-import { API_URL } from '../config';
+import { API_URL, getPhotoUrl } from '../config';
 import './Profile.css';
 
 const INTERESTS_OPTIONS = [
@@ -153,7 +153,7 @@ const Profile = () => {
                     <div className="photos-grid">
                         {photos.map((photoUrl, index) => (
                             <div key={index} className="photo-card">
-                                <img src={`${API_URL}${photoUrl}`} alt={`Publication ${index + 1}`} />
+                                <img src={getPhotoUrl(photoUrl)} alt={`Publication ${index + 1}`} />
                             </div>
                         ))}
                         <div className="photo-card add-photo-card" onClick={() => fileInputRef.current.click()}>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { API_URL } from '../config';
+import { API_URL, getPhotoUrl } from '../config';
 import './MainApp.css';
 
 const MainApp = () => {
@@ -79,7 +79,7 @@ const MainApp = () => {
                     <div className="tinder-card">
                         <div className="card-image-wrapper">
                             {currentProfile.photos && currentProfile.photos.length > 0 ? (
-                                <img src={currentProfile.photos[0]} alt={currentProfile.firstName} className="card-image" />
+                                <img src={getPhotoUrl(currentProfile.photos[0])} alt={currentProfile.firstName} className="card-image" />
                             ) : (
                                 <div className="card-image-placeholder bg-pink flex items-center justify-center">
                                     <span style={{ fontSize: '4rem', fontWeight: 800, color: 'rgba(255,255,255,0.5)' }}>
