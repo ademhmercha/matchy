@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { API_URL } from '../config';
+import { useAuth } from '../context/AuthContext';
 import './Auth.css';
 
 const Login = () => {
@@ -11,6 +12,7 @@ const Login = () => {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const { login } = useAuth();
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -26,7 +28,7 @@ const Login = () => {
                 withCredentials: true,
             });
             if (res.data?.token) {
-                localStorage.setItem('token', res.data.token);
+                login(res.data.token, res.data.user);
                 navigate('/app');
             }
         } catch (err) {

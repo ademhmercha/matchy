@@ -8,6 +8,7 @@ import ChatApp from './pages/ChatApp';
 import Profile from './pages/Profile';
 import AdminDashboard from './pages/AdminDashboard';
 import { SocketProvider } from './context/SocketContext';
+import { AuthProvider } from './context/AuthContext';
 import UserProfileModal from './components/UserProfileModal';
 import { useState } from 'react';
 import './index.css';
@@ -20,6 +21,7 @@ function App() {
   };
 
   return (
+    <AuthProvider>
     <SocketProvider>
       <BrowserRouter>
         <div className="app-container">
@@ -49,6 +51,7 @@ function App() {
         </div>
       </BrowserRouter>
     </SocketProvider>
+    </AuthProvider>
   );
 }
 

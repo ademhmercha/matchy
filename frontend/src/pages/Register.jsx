@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { API_URL, getPhotoUrl } from '../config';
+import { useAuth } from '../context/AuthContext';
 import './Auth.css';
 
 const INTERESTS_OPTIONS = [
@@ -13,6 +14,7 @@ const INTERESTS_OPTIONS = [
 const Register = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
+    const { login } = useAuth();
 
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState({
@@ -80,7 +82,7 @@ const Register = () => {
                 withCredentials: true,
             });
             if (res.data?.token) {
-                localStorage.setItem('token', res.data.token);
+                login(res.data.token, res.data.user);
                 navigate('/app');
             }
         } catch (err) {

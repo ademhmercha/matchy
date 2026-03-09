@@ -3,10 +3,12 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { API_URL, getPhotoUrl } from '../config';
+import { useAuth } from '../context/AuthContext';
 import './MainApp.css';
 
 const MainApp = () => {
     const { t } = useTranslation();
+    const { isAuthenticated, isLoading: authLoading } = useAuth();
     const [profiles, setProfiles] = useState([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [loading, setLoading] = useState(true);
@@ -15,30 +17,19 @@ const MainApp = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        // Check auth and fetch profiles
-        const initialize = async () => {
-            try {
-                const authRes = await axios.get(`${API_URL}/api/auth/check`, { withCredentials: true });
-                if (!authRes.data.isAuthenticated) {
-                    navigate('/login');
-                    return;
-                }
-
-                const profilesRes = await axios.get(`${API_URL}/api/users/profiles`, { withCredentials: true });
-                setProfiles(profilesRes.data);
-            } catch (err) {
-                if (err.response?.status === 401) {
-                    navigate('/login');
-                } else {
-                    setError(t('mainApp.loadError'));
-                }
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        initialize();
-    }, [navigate]);
+        if (authLoading) return;
+        if (!isAuthenticated) {
+            navigate('/login');
+            return;
+        }
+        axios.get(`${API_URL}/api/users/profiles`)
+            .then(res => setProfiles(res.data))
+            .catch(err => {
+                if (err.response?.status === 401) navigate('/login');
+                else setError(t('mainApp.loadError'));
+            })
+            .finally(() => setLoading(false));
+    }, [isAuthenticated, authLoading]);
 
     const handleAction = async (action) => {
         if (currentIndex >= profiles.length) return;

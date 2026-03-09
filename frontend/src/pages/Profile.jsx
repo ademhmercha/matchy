@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { API_URL, getPhotoUrl } from '../config';
+import { useAuth } from '../context/AuthContext';
 import './Profile.css';
 
 const INTERESTS_OPTIONS = [
@@ -11,6 +12,7 @@ const INTERESTS_OPTIONS = [
 
 const Profile = () => {
     const { t } = useTranslation();
+    const { user: authUser, setUser: setAuthUser } = useAuth();
     const [user, setUser] = useState(null);
     const [firstName, setFirstName] = useState('');
     const [bio, setBio] = useState('');
@@ -21,22 +23,14 @@ const Profile = () => {
     const fileInputRef = useRef();
 
     useEffect(() => {
-        const fetchUser = async () => {
-            try {
-                const res = await axios.get(`${API_URL}/api/auth/check`, { withCredentials: true });
-                if (res.data.isAuthenticated) {
-                    setUser(res.data.user);
-                    setFirstName(res.data.user.firstName || '');
-                    setBio(res.data.user.bio || '');
-                    setPhotos(res.data.user.photos || []);
-                    setInterests(res.data.user.interests || []);
-                }
-            } catch (error) {
-                console.error('Error fetching user for profile:', error);
-            }
-        };
-        fetchUser();
-    }, []);
+        if (authUser) {
+            setUser(authUser);
+            setFirstName(authUser.firstName || '');
+            setBio(authUser.bio || '');
+            setPhotos(authUser.photos || []);
+            setInterests(authUser.interests || []);
+        }
+    }, [authUser]);
 
     const toggleInterest = (interest) => {
         const current = [...interests];

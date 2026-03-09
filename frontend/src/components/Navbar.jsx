@@ -1,40 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { useTranslation } from 'react-i18next';
-import { API_URL } from '../config';
+import { useAuth } from '../context/AuthContext';
 import Notification from './Notification';
 import './Navbar.css';
 
 const Navbar = ({ onShowProfile }) => {
     const { t, i18n } = useTranslation();
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [user, setUser] = useState(null);
+    const { isAuthenticated, user, logout } = useAuth();
     const navigate = useNavigate();
 
     const changeLanguage = (lng) => {
         i18n.changeLanguage(lng);
     };
 
-    useEffect(() => {
-        const checkAuth = async () => {
-            try {
-                const res = await axios.get(`${API_URL}/api/auth/check`, {
-                    withCredentials: true,
-                    validateStatus: (status) => status === 200 || status === 401,
-                });
-                setIsAuthenticated(res.data?.isAuthenticated || false);
-                setUser(res.data?.user || null);
-            } catch (err) {
-                setIsAuthenticated(false);
-            }
-        };
-        checkAuth();
-    }, []);
-
     const handleLogout = () => {
-        localStorage.removeItem('token');
-        setIsAuthenticated(false);
+        logout();
         navigate('/login');
     };
 
@@ -58,18 +39,8 @@ const Navbar = ({ onShowProfile }) => {
                 </div>
                 <div className="navbar-right flex items-center gap-4">
                     <div className="nav-language flex items-center gap-3">
-                        <button
-                            onClick={() => changeLanguage('fr')}
-                            className={`lang-btn ${i18n.language.startsWith('fr') ? 'active' : ''}`}
-                        >
-                            FR
-                        </button>
-                        <button
-                            onClick={() => changeLanguage('en')}
-                            className={`lang-btn ${i18n.language.startsWith('en') ? 'active' : ''}`}
-                        >
-                            EN
-                        </button>
+                        <button onClick={() => changeLanguage('fr')} className={`lang-btn ${i18n.language.startsWith('fr') ? 'active' : ''}`}>FR</button>
+                        <button onClick={() => changeLanguage('en')} className={`lang-btn ${i18n.language.startsWith('en') ? 'active' : ''}`}>EN</button>
                     </div>
                     {isAuthenticated ? (
                         <div className="flex items-center gap-4">
