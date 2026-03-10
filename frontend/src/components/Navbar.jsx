@@ -1,14 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import Notification from './Notification';
+import ComplaintModal from './ComplaintModal';
 import './Navbar.css';
 
 const Navbar = ({ onShowProfile }) => {
     const { t, i18n } = useTranslation();
     const { isAuthenticated, user, logout } = useAuth();
     const navigate = useNavigate();
+    const [showComplaint, setShowComplaint] = useState(false);
 
     const changeLanguage = (lng) => {
         i18n.changeLanguage(lng);
@@ -20,6 +22,8 @@ const Navbar = ({ onShowProfile }) => {
     };
 
     return (
+        <>
+        {showComplaint && <ComplaintModal onClose={() => setShowComplaint(false)} />}
         <nav className="navbar">
             <div className="navbar-container container flex justify-between items-center">
                 <div className="navbar-left flex items-center gap-6">
@@ -45,6 +49,9 @@ const Navbar = ({ onShowProfile }) => {
                     {isAuthenticated ? (
                         <div className="flex items-center gap-4">
                             <Notification onShowProfile={onShowProfile} />
+                            <button onClick={() => setShowComplaint(true)} className="nav-link" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontSize: 'inherit' }}>
+                                📝 Réclamation
+                            </button>
                             <Link to="/profile" className="nav-link">{t('common.profile')}</Link>
                             <button onClick={handleLogout} className="btn-outline">{t('common.logout')}</button>
                         </div>
@@ -57,6 +64,8 @@ const Navbar = ({ onShowProfile }) => {
                 </div>
             </div>
         </nav>
+        </nav>
+        </>
     );
 };
 

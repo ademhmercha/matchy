@@ -44,9 +44,13 @@ const userSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['active', 'banned'],
-        default: 'active',
+        enum: ['pending', 'active', 'banned'],
+        default: 'pending',
     },
+    emailVerificationToken: String,
+    emailVerificationExpires: Date,
+    resetPasswordToken: String,
+    resetPasswordExpires: Date,
 }, { timestamps: true });
 
 

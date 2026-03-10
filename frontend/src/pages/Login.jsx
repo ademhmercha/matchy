@@ -10,7 +10,10 @@ const Login = () => {
     const { t } = useTranslation();
     const [formData, setFormData] = useState({ emailOrPhone: '', password: '' });
     const [error, setError] = useState('');
+    const [errorCode, setErrorCode] = useState('');
     const [loading, setLoading] = useState(false);
+    const [resendLoading, setResendLoading] = useState(false);
+    const [resendDone, setResendDone] = useState(false);
     const navigate = useNavigate();
     const { login } = useAuth();
 
@@ -21,20 +24,32 @@ const Login = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
+        setErrorCode('');
         setLoading(true);
-
         try {
-            const res = await axios.post(`${API_URL}/api/auth/login`, formData, {
-                withCredentials: true,
-            });
+            const res = await axios.post(`${API_URL}/api/auth/login`, formData, { withCredentials: true });
             if (res.data?.token) {
                 login(res.data.token, res.data.user);
                 navigate('/app');
             }
         } catch (err) {
             setError(err.response?.data?.message || t('common.error'));
+            setErrorCode(err.response?.data?.error || '');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleResendVerification = async () => {
+        setResendLoading(true);
+        try {
+            await axios.post(`${API_URL}/api/auth/resend-verification`, { emailOrPhone: formData.emailOrPhone });
+            setResendDone(true);
+        } catch {
+            // fail silently — server always returns 200
+            setResendDone(true);
+        } finally {
+            setResendLoading(false);
         }
     };
 
@@ -46,7 +61,25 @@ const Login = () => {
                     <p className="auth-subtitle">{t('auth.welcomeBack')}</p>
                 </div>
 
-                {error && <div className="form-error text-center" style={{ marginBottom: '1rem' }}>{error}</div>}
+                {error && (
+                    <div className="form-error text-center" style={{ marginBottom: '1rem' }}>
+                        {error}
+                        {errorCode === 'email_not_verified' && !resendDone && (
+                            <div style={{ marginTop: 10 }}>
+                                <button
+                                    onClick={handleResendVerification}
+                                    disabled={resendLoading}
+                                    style={{ background: 'none', border: '1px solid #e91e8c', color: '#e91e8c', borderRadius: 6, padding: '6px 14px', cursor: 'pointer', fontSize: 13 }}
+                                >
+                                    {resendLoading ? 'Envoi...' : 'Renvoyer l\'email de vérification'}
+                                </button>
+                            </div>
+                        )}
+                        {resendDone && (
+                            <p style={{ color: '#4caf50', fontSize: 13, marginTop: 8 }}>Email renvoyé ! Vérifiez votre boîte.</p>
+                        )}
+                    </div>
+                )}
 
                 <form onSubmit={handleSubmit} className="auth-form">
                     <div className="form-group">
@@ -73,6 +106,11 @@ const Login = () => {
                             onChange={handleChange}
                             required
                         />
+                        <div style={{ textAlign: 'right', marginTop: 6 }}>
+                            <Link to="/forgot-password" style={{ color: '#e91e8c', fontSize: 13, textDecoration: 'none' }}>
+                                Mot de passe oublié ?
+                            </Link>
+                        </div>
                     </div>
 
                     <button type="submit" className="btn-primary auth-submit-btn" disabled={loading}>

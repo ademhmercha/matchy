@@ -7,6 +7,9 @@ import MainApp from './pages/MainApp';
 import ChatApp from './pages/ChatApp';
 import Profile from './pages/Profile';
 import AdminDashboard from './pages/AdminDashboard';
+import VerifyEmail from './pages/VerifyEmail';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import { SocketProvider } from './context/SocketContext';
 import { AuthProvider } from './context/AuthContext';
 import UserProfileModal from './components/UserProfileModal';
@@ -35,6 +38,9 @@ function App() {
               <Route path="/chat" element={<ChatApp onShowProfile={handleShowProfile} />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/verify-email" element={<VerifyEmail />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
             </Routes>
           </main>
           {selectedProfileUserId && (
