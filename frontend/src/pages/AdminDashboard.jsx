@@ -71,6 +71,10 @@ const AdminDashboard = () => {
     };
 
     const handleComplaintResponse = async (complaintId) => {
+        if (!responseText.trim()) {
+            alert('Veuillez saisir une réponse avant de soumettre.');
+            return;
+        }
         try {
             await axios.put(`${API_URL}/api/admin/complaints/${complaintId}`, {
                 status: responseStatus,
@@ -280,7 +284,7 @@ const AdminDashboard = () => {
                                                 />
                                                 <div style={{ display: 'flex', gap: 8 }}>
                                                     <button onClick={() => setRespondingTo(null)} style={{ padding: '8px 16px', background: 'rgba(255,255,255,0.08)', color: '#ccc', border: 'none', borderRadius: 8, cursor: 'pointer' }}>Annuler</button>
-                                                    <button onClick={() => handleComplaintResponse(c._id)} style={{ padding: '8px 20px', background: 'linear-gradient(135deg,#e91e8c,#9c27b0)', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 'bold' }}>Envoyer</button>
+                                                    <button onClick={() => handleComplaintResponse(c._id)} disabled={!responseText.trim()} style={{ padding: '8px 20px', background: 'linear-gradient(135deg,#e91e8c,#9c27b0)', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 'bold', opacity: responseText.trim() ? 1 : 0.4 }}>Envoyer</button>
                                                 </div>
                                             </div>
                                         ) : (
