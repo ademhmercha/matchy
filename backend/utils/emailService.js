@@ -1,13 +1,14 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-const FROM = process.env.FROM_EMAIL || 'onboarding@resend.dev';
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+// Initialize lazily so dotenv has time to load before the key is read
+const getResend = () => new Resend(process.env.RESEND_API_KEY);
+const FROM = () => process.env.FROM_EMAIL || 'onboarding@resend.dev';
+const FRONTEND = () => process.env.FRONTEND_URL || 'http://localhost:5173';
 
 export async function sendVerificationEmail(to, token) {
-    const link = `${FRONTEND_URL}/verify-email?token=${token}`;
-    await resend.emails.send({
-        from: FROM,
+    const link = `${FRONTEND()}/verify-email?token=${token}`;
+    await getResend().emails.send({
+        from: FROM(),
         to,
         subject: 'Matchy — Vérifiez votre adresse email',
         html: `
@@ -24,9 +25,9 @@ export async function sendVerificationEmail(to, token) {
 }
 
 export async function sendPasswordResetEmail(to, token) {
-    const link = `${FRONTEND_URL}/reset-password?token=${token}`;
-    await resend.emails.send({
-        from: FROM,
+    const link = `${FRONTEND()}/reset-password?token=${token}`;
+    await getResend().emails.send({
+        from: FROM(),
         to,
         subject: 'Matchy — Réinitialisation de mot de passe',
         html: `

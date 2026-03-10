@@ -64,7 +64,6 @@ const Navbar = ({ onShowProfile }) => {
                 </div>
             </div>
         </nav>
-        </nav>
         </>
     );
 };
