@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
-import { API_URL } from '../config';
+import { API_URL, getPhotoUrl } from '../config';
 import './AdminDashboard.css';
 
 const COMPLAINT_STATUS_LABELS = {
@@ -206,7 +206,7 @@ const AdminDashboard = () => {
                                         <div className="report-reason">{t('admin.reports.reason')}: {report.reason}</div>
                                         {report.evidence && (
                                             <div className="report-evidence">
-                                                <img src={`${API_URL}${report.evidence}`} alt="Evidence" className="admin-report-img" />
+                                                <img src={getPhotoUrl(report.evidence)} alt="Evidence" className="admin-report-img" />
                                             </div>
                                         )}
                                         <div className="report-actions">
