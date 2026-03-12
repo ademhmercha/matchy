@@ -1,17 +1,31 @@
-import { Resend } from 'resend';
+import * as Brevo from '@getbrevo/brevo';
 
-const getResend = () => new Resend(process.env.RESEND_API_KEY);
-const FROM = () => process.env.FROM_EMAIL || 'onboarding@resend.dev';
+const getClient = () => {
+    const apiInstance = new Brevo.TransactionalEmailsApi();
+    apiInstance.authentications['api-key'].apiKey = process.env.BREVO_API_KEY;
+    return apiInstance;
+};
+
+const FROM_EMAIL = () => process.env.FROM_EMAIL || 'ademhmerchaaa@gmail.com';
+const FROM_NAME = 'Amorino';
 const FRONTEND = () => process.env.FRONTEND_URL || 'http://localhost:5173';
 
 async function sendEmail(to, subject, html) {
-    const result = await getResend().emails.send({ from: FROM(), to, subject, html });
-    if (result.error) {
-        console.error(`[Resend] Failed to send to ${to}:`, JSON.stringify(result.error));
-        throw new Error(result.error.message || 'Email send failed');
+    const client = getClient();
+    const email = new Brevo.SendSmtpEmail();
+    email.sender = { name: FROM_NAME, email: FROM_EMAIL() };
+    email.to = [{ email: to }];
+    email.subject = subject;
+    email.htmlContent = html;
+
+    try {
+        const result = await client.sendTransacEmail(email);
+        console.log(`[Brevo] Email sent to ${to} — id: ${result.body?.messageId}`);
+        return result;
+    } catch (error) {
+        console.error(`[Brevo] Failed to send to ${to}:`, error?.response?.body || error.message);
+        throw new Error(error?.response?.body?.message || 'Email send failed');
     }
-    console.log(`[Resend] Email sent to ${to} — id: ${result.data?.id}`);
-    return result;
 }
 
 export async function sendVerificationEmail(to, token) {
