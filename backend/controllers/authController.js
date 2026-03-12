@@ -42,7 +42,18 @@ export const register = async (req, res) => {
         });
         await newUser.save();
 
-        await sendVerificationEmail(emailOrPhone, rawToken);
+        try {
+            await sendVerificationEmail(emailOrPhone, rawToken);
+        } catch (emailError) {
+            // Email failed — delete the user so they can retry
+            await User.findByIdAndDelete(newUser._id);
+            console.error('Email send failed during registration:', emailError.message);
+            return res.status(500).json({
+                message: 'Impossible d\'envoyer l\'email de vérification. Vérifiez que vous utilisez une adresse email valide.',
+                error: 'email_send_failed'
+            });
+        }
+
         await createAuditLog('REGISTER', newUser._id, { email: emailOrPhone });
 
         res.status(201).json({

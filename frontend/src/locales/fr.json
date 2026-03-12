@@ -1,6 +1,6 @@
 {
     "common": {
-        "appName": "Matchy",
+        "appName": "Amorino",
         "logout": "Déconnexion",
         "login": "Connexion",
         "register": "S'inscrire",
@@ -92,8 +92,8 @@
         }
     },
     "admin": {
-        "panelTitle": "Dashboard Admin Matchy",
-        "panelSubtitle": "Gère les utilisateurs et les paramètres de Matchy",
+        "panelTitle": "Dashboard Admin Amorino",
+        "panelSubtitle": "Gère les utilisateurs et les paramètres de Amorino",
         "accessDenied": "Accès refusé : Vous n'êtes pas administrateur",
         "statusUpdateError": "Erreur lors de la mise à jour du statut",
         "deleteConfirm": "Es-tu sûr de vouloir supprimer cet utilisateur ?",
