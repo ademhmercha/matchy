@@ -54,10 +54,7 @@ router.post('/upload-audio', upload.single('audio'), async (req, res) => {
         if (!req.file) {
             return res.status(400).json({ message: 'No file uploaded' });
         }
-
-        // URL publique du backend (pour les liens vers /uploads) — sur Render : PUBLIC_URL=https://matchy-ulk4.onrender.com
-        const baseUrl = (process.env.PUBLIC_URL || 'http://localhost:5000').replace(/\/$/, '');
-        const audioUrl = `${baseUrl}/uploads/${req.file.filename}`;
+        const audioUrl = `/uploads/${req.file.filename}`;
         res.status(200).json({ audioUrl });
     } catch (error) {
         console.error('Error uploading audio:', error);
@@ -71,8 +68,7 @@ router.post('/upload-media', upload.single('media'), async (req, res) => {
         if (!req.file) {
             return res.status(400).json({ message: 'No file uploaded' });
         }
-        const baseUrl = (process.env.PUBLIC_URL || 'http://localhost:5000').replace(/\/$/, '');
-        const mediaUrl = `${baseUrl}/uploads/${req.file.filename}`;
+        const mediaUrl = `/uploads/${req.file.filename}`;
         const mediaType = req.file.mimetype.startsWith('video') ? 'video' : 'image';
         res.status(200).json({ mediaUrl, mediaType });
     } catch (error) {

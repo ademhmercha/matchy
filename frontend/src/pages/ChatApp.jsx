@@ -510,14 +510,16 @@ const ChatApp = ({ onShowProfile }) => {
                                             <div className={`message-bubble ${isMine ? 'mine' : 'theirs'} ${isAudio ? 'message-audio-bubble' : ''} ${isGif || isImage ? 'message-gif-bubble' : ''} ${isVideo ? 'message-video-bubble' : ''}`}>
                                                 {isAudio ? (
                                                     <audio
-                                                        src={msg.content.startsWith('http') ? msg.content : `${API_URL}${msg.content}`}
+                                                        src={getPhotoUrl(msg.content)}
                                                         controls
                                                         className="audio-player"
                                                     />
-                                                ) : isGif || isImage ? (
-                                                    <img src={msg.content} alt="image" className="message-gif-img" />
+                                                ) : isGif ? (
+                                                    <img src={msg.content} alt="GIF" className="message-gif-img" />
+                                                ) : isImage ? (
+                                                    <img src={getPhotoUrl(msg.content)} alt="image" className="message-gif-img" />
                                                 ) : isVideo ? (
-                                                    <video src={msg.content} controls className="message-video" />
+                                                    <video src={getPhotoUrl(msg.content)} controls className="message-video" />
                                                 ) : (
                                                     msg.content
                                                 )}
