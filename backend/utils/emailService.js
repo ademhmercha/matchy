@@ -1,30 +1,27 @@
-import * as Brevo from '@getbrevo/brevo';
-
-const getClient = () => {
-    const apiInstance = new Brevo.TransactionalEmailsApi();
-    apiInstance.authentications['api-key'].apiKey = process.env.BREVO_API_KEY;
-    return apiInstance;
-};
+import axios from 'axios';
 
 const FROM_EMAIL = () => process.env.FROM_EMAIL || 'ademhmerchaaa@gmail.com';
-const FROM_NAME = 'Amorino';
 const FRONTEND = () => process.env.FRONTEND_URL || 'http://localhost:5173';
 
 async function sendEmail(to, subject, html) {
-    const client = getClient();
-    const email = new Brevo.SendSmtpEmail();
-    email.sender = { name: FROM_NAME, email: FROM_EMAIL() };
-    email.to = [{ email: to }];
-    email.subject = subject;
-    email.htmlContent = html;
-
     try {
-        const result = await client.sendTransacEmail(email);
-        console.log(`[Brevo] Email sent to ${to} — id: ${result.body?.messageId}`);
-        return result;
+        const response = await axios.post('https://api.brevo.com/v3/smtp/email', {
+            sender: { name: 'Amorino', email: FROM_EMAIL() },
+            to: [{ email: to }],
+            subject,
+            htmlContent: html,
+        }, {
+            headers: {
+                'api-key': process.env.BREVO_API_KEY,
+                'Content-Type': 'application/json',
+            },
+        });
+        console.log(`[Brevo] Email sent to ${to} — id: ${response.data?.messageId}`);
+        return response.data;
     } catch (error) {
-        console.error(`[Brevo] Failed to send to ${to}:`, error?.response?.body || error.message);
-        throw new Error(error?.response?.body?.message || 'Email send failed');
+        const msg = error.response?.data?.message || error.message;
+        console.error(`[Brevo] Failed to send to ${to}:`, msg);
+        throw new Error(msg);
     }
 }
 
