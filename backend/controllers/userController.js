@@ -224,6 +224,8 @@ export const unmatchUser = async (req, res) => {
         await currentUser.save();
         await targetUser.save();
 
+        await createAuditLog('UNMATCH', currentUserId, {}, targetUserId);
+
         res.status(200).json({ message: 'Unmatched successfully' });
     } catch (error) {
         console.error('Error unmatching:', error);

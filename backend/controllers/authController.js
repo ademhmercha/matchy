@@ -89,7 +89,7 @@ export const login = async (req, res) => {
         res.status(200).json({
             message: 'Connecté avec succès.',
             token,
-            user: { _id: user._id, firstName: user.firstName }
+            user: { _id: user._id, firstName: user.firstName, role: user.role, photos: user.photos }
         });
     } catch (error) {
         console.error('Login error:', error);
@@ -97,7 +97,19 @@ export const login = async (req, res) => {
     }
 };
 
-export const logout = (req, res) => {
+export const logout = async (req, res) => {
+    try {
+        // Extract userId from token if present to log the logout
+        const auth = req.headers.authorization;
+        if (auth?.startsWith('Bearer ')) {
+            const jwt = (await import('jsonwebtoken')).default;
+            const JWT_SECRET = process.env.JWT_SECRET || 'matchy-jwt-secret-key';
+            try {
+                const { userId } = jwt.verify(auth.slice(7), JWT_SECRET);
+                await createAuditLog('LOGOUT', userId);
+            } catch { /* token invalid, skip log */ }
+        }
+    } catch { /* ignore */ }
     res.status(200).json({ message: 'Déconnecté avec succès.' });
 };
 
@@ -142,7 +154,7 @@ export const verifyEmail = async (req, res) => {
         res.status(200).json({
             message: 'Email vérifié avec succès.',
             token: jwtToken,
-            user: { _id: user._id, firstName: user.firstName }
+            user: { _id: user._id, firstName: user.firstName, role: user.role, photos: user.photos }
         });
     } catch (error) {
         console.error('verifyEmail error:', error);

@@ -1,6 +1,7 @@
 import express from 'express';
 import { getProfiles, likeProfile, getMatches, updateProfile, uploadPhoto, getMatchProfile, unmatchUser, reportUser } from '../controllers/userController.js';
 
+
 const router = express.Router();
 
 import multer from 'multer';
@@ -36,5 +37,18 @@ router.get('/profile/:id', getMatchProfile);
 router.put('/profile', updateProfile);
 router.delete('/unmatch/:id', unmatchUser);
 router.post('/report', reportUser);
+
+router.get('/my-logs', async (req, res) => {
+    try {
+        const AuditLog = (await import('../models/AuditLog.js')).default;
+        const logs = await AuditLog.find({ performedBy: req.userId })
+            .populate('targetUser', 'firstName')
+            .sort({ createdAt: -1 })
+            .limit(50);
+        res.status(200).json(logs);
+    } catch (error) {
+        res.status(500).json({ message: 'Erreur serveur.' });
+    }
+});
 
 export default router;
