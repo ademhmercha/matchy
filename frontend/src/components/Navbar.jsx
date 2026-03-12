@@ -49,11 +49,11 @@ const Navbar = ({ onShowProfile }) => {
                     {isAuthenticated ? (
                         <div className="flex items-center gap-4">
                             <Notification onShowProfile={onShowProfile} />
-                            <button onClick={() => setShowComplaint(true)} className="nav-link" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontSize: 'inherit' }}>
+                            <button onClick={() => setShowComplaint(true)} className="nav-link hidden-mobile" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontSize: 'inherit' }}>
                                 📝 Réclamation
                             </button>
-                            <Link to="/profile" className="nav-link">{t('common.profile')}</Link>
-                            <button onClick={handleLogout} className="btn-outline">{t('common.logout')}</button>
+                            <Link to="/profile" className="nav-link hidden-mobile">{t('common.profile')}</Link>
+                            <button onClick={handleLogout} className="btn-outline hidden-mobile">{t('common.logout')}</button>
                         </div>
                     ) : (
                         <div className="flex items-center gap-4">
@@ -64,6 +64,32 @@ const Navbar = ({ onShowProfile }) => {
                 </div>
             </div>
         </nav>
+
+        {/* Mobile bottom navigation */}
+        {isAuthenticated && (
+            <nav className="mobile-bottom-nav">
+                <Link to="/app" className="mobile-nav-item">
+                    <span>🔥</span>
+                    <span>{t('common.discover')}</span>
+                </Link>
+                <Link to="/chat" className="mobile-nav-item">
+                    <span>💬</span>
+                    <span>{t('common.messages')}</span>
+                </Link>
+                <button onClick={() => setShowComplaint(true)} className="mobile-nav-item">
+                    <span>📝</span>
+                    <span>Réclamation</span>
+                </button>
+                <Link to="/profile" className="mobile-nav-item">
+                    <span>👤</span>
+                    <span>{t('common.profile')}</span>
+                </Link>
+                <button onClick={handleLogout} className="mobile-nav-item">
+                    <span>🚪</span>
+                    <span>{t('common.logout')}</span>
+                </button>
+            </nav>
+        )}
         </>
     );
 };
