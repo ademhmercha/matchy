@@ -10,17 +10,19 @@ const uploadsDir = path.join(__dirname, '..', 'uploads');
 
 const router = express.Router();
 
-// Multer config for audio uploads
+// Multer config for audio/media uploads
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, uploadsDir);
     },
     filename: (req, file, cb) => {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, 'audio-' + uniqueSuffix + '.webm');
+        const ext = path.extname(file.originalname) || '.bin';
+        const prefix = file.mimetype.startsWith('video') ? 'video' : file.mimetype.startsWith('image') ? 'img' : 'audio';
+        cb(null, prefix + '-' + uniqueSuffix + ext);
     }
 });
-const upload = multer({ storage });
+const upload = multer({ storage, limits: { fileSize: 50 * 1024 * 1024 } }); // 50MB limit
 
 import { requireAuth } from '../utils/jwtAuth.js';
 
@@ -60,6 +62,22 @@ router.post('/upload-audio', upload.single('audio'), async (req, res) => {
     } catch (error) {
         console.error('Error uploading audio:', error);
         res.status(500).json({ message: 'Error uploading audio' });
+    }
+});
+
+// Upload image or video message
+router.post('/upload-media', upload.single('media'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: 'No file uploaded' });
+        }
+        const baseUrl = (process.env.PUBLIC_URL || 'http://localhost:5000').replace(/\/$/, '');
+        const mediaUrl = `${baseUrl}/uploads/${req.file.filename}`;
+        const mediaType = req.file.mimetype.startsWith('video') ? 'video' : 'image';
+        res.status(200).json({ mediaUrl, mediaType });
+    } catch (error) {
+        console.error('Error uploading media:', error);
+        res.status(500).json({ message: 'Error uploading media' });
     }
 });
 

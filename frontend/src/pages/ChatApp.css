@@ -192,20 +192,48 @@
     opacity: 0.5;
 }
 
+.chat-back-btn {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    font-size: 1.4rem;
+    cursor: pointer;
+    padding: 0 8px 0 0;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
 @media (max-width: 768px) {
+    .chat-app-container {
+        padding-bottom: 80px !important;
+    }
+
     .chat-layout {
-        flex-direction: column;
+        height: calc(100vh - 164px);
     }
 
     .matches-sidebar {
         width: 100%;
-        height: 30%;
+        height: 100%;
         border-right: none;
-        border-bottom: 1px solid var(--border-light);
+    }
+
+    .matches-sidebar.mobile-hidden {
+        display: none;
     }
 
     .chat-area {
-        height: 70%;
+        display: none;
+        height: 100%;
+    }
+
+    .chat-area.mobile-visible {
+        display: flex;
+    }
+
+    .chat-back-btn {
+        display: block;
     }
 }
 
@@ -747,4 +775,34 @@
     width: 100%;
     border-radius: 12px;
     display: block;
+}
+
+/* ── Media (image/video) button ── */
+.media-btn {
+    font-size: 1.3rem;
+    padding: 0.5rem;
+    cursor: pointer;
+    background: none;
+    border: none;
+    transition: var(--transition);
+    flex-shrink: 0;
+}
+
+.media-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ── Video messages ── */
+.message-video-bubble {
+    padding: 0.25rem !important;
+    background: transparent !important;
+    max-width: 240px !important;
+}
+
+.message-video {
+    width: 100%;
+    border-radius: 12px;
+    display: block;
+    max-height: 200px;
 }

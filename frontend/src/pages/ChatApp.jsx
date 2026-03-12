@@ -18,6 +18,8 @@ const ChatApp = ({ onShowProfile }) => {
     const [gifSearch, setGifSearch] = useState('');
     const [gifs, setGifs] = useState([]);
     const [gifLoading, setGifLoading] = useState(false);
+    const [isUploadingMedia, setIsUploadingMedia] = useState(false);
+    const mediaInputRef = useRef(null);
     const activeMatchRef = useRef(null);
     const GIPHY_API_KEY = import.meta.env.VITE_GIPHY_API_KEY || '';
 
@@ -236,6 +238,31 @@ const ChatApp = ({ onShowProfile }) => {
         }
     };
 
+    const sendMedia = async (e) => {
+        const file = e.target.files[0];
+        if (!file || !activeMatch || !currentUser) return;
+        setIsUploadingMedia(true);
+        try {
+            const formData = new FormData();
+            formData.append('media', file);
+            const uploadRes = await axios.post(`${API_URL}/api/messages/upload-media`, formData, {
+                withCredentials: true,
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            socketRef.current.emit('send_message', {
+                senderId: currentUser._id,
+                receiverId: activeMatch._id,
+                content: uploadRes.data.mediaUrl,
+                type: uploadRes.data.mediaType,
+            });
+        } catch (err) {
+            console.error('Error uploading media:', err);
+        } finally {
+            setIsUploadingMedia(false);
+            if (mediaInputRef.current) mediaInputRef.current.value = '';
+        }
+    };
+
     const sendMessage = (e) => {
         e.preventDefault();
         if (!newMessage.trim() || !activeMatch || !currentUser) return;
@@ -368,7 +395,7 @@ const ChatApp = ({ onShowProfile }) => {
     return (
         <div className="chat-app-container container">
             <div className="chat-layout">
-                <div className="matches-sidebar">
+                <div className={`matches-sidebar ${activeMatch ? 'mobile-hidden' : ''}`}>
                     <h3>{t('common.messages')}</h3>
                     <div className="matches-list">
                         {matches.length === 0 ? (
@@ -394,10 +421,11 @@ const ChatApp = ({ onShowProfile }) => {
                     </div>
                 </div>
 
-                <div className="chat-area">
+                <div className={`chat-area ${activeMatch ? 'mobile-visible' : ''}`}>
                     {activeMatch ? (
                         <>
                             <div className="chat-header">
+                                <button className="chat-back-btn" onClick={() => setActiveMatch(null)}>←</button>
                                 <div className="active-match-info" onClick={() => onShowProfile(activeMatch._id)}>
                                     <div className="match-avatar-small bg-pink">
                                         {activeMatch.photos && activeMatch.photos.length > 0 ? (
@@ -463,6 +491,8 @@ const ChatApp = ({ onShowProfile }) => {
                                     const isCall = msg.type === 'call';
                                     const isAudio = msg.type === 'audio';
                                     const isGif = msg.type === 'gif';
+                                    const isImage = msg.type === 'image';
+                                    const isVideo = msg.type === 'video';
 
                                     if (isCall) {
                                         return (
@@ -477,15 +507,17 @@ const ChatApp = ({ onShowProfile }) => {
 
                                     return (
                                         <div key={idx} className={`message-row ${isMine ? 'mine' : 'theirs'}`}>
-                                            <div className={`message-bubble ${isMine ? 'mine' : 'theirs'} ${isAudio ? 'message-audio-bubble' : ''} ${isGif ? 'message-gif-bubble' : ''}`}>
+                                            <div className={`message-bubble ${isMine ? 'mine' : 'theirs'} ${isAudio ? 'message-audio-bubble' : ''} ${isGif || isImage ? 'message-gif-bubble' : ''} ${isVideo ? 'message-video-bubble' : ''}`}>
                                                 {isAudio ? (
                                                     <audio
                                                         src={msg.content.startsWith('http') ? msg.content : `${API_URL}${msg.content}`}
                                                         controls
                                                         className="audio-player"
                                                     />
-                                                ) : isGif ? (
-                                                    <img src={msg.content} alt="GIF" className="message-gif-img" />
+                                                ) : isGif || isImage ? (
+                                                    <img src={msg.content} alt="image" className="message-gif-img" />
+                                                ) : isVideo ? (
+                                                    <video src={msg.content} controls className="message-video" />
                                                 ) : (
                                                     msg.content
                                                 )}
@@ -559,6 +591,20 @@ const ChatApp = ({ onShowProfile }) => {
                                                 className={`gif-btn ${showGifPicker ? 'active' : ''}`}
                                                 onClick={() => { setShowGifPicker(v => !v); if (!showGifPicker) fetchGifs(); }}
                                             >GIF</button>
+                                            <button
+                                                type="button"
+                                                className="media-btn"
+                                                onClick={() => mediaInputRef.current?.click()}
+                                                disabled={isUploadingMedia}
+                                                title="Envoyer une image ou vidéo"
+                                            >{isUploadingMedia ? '⏳' : '📎'}</button>
+                                            <input
+                                                ref={mediaInputRef}
+                                                type="file"
+                                                accept="image/*,video/*"
+                                                style={{ display: 'none' }}
+                                                onChange={sendMedia}
+                                            />
                                             <input
                                                 type="text"
                                                 className="input-base chat-input"
